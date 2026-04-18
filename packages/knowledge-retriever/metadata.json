@@ -1,0 +1,8 @@
+{
+  "name": "knowledge-retriever",
+  "type": "skill",
+  "description": "Retrieve relevant domain knowledge from the local knowledge base when the current task could benefit from additional context",
+  "tags": ["registry-core", "knowledge", "retrieval"],
+  "author": "skill-registry",
+  "license": "MIT"
+}

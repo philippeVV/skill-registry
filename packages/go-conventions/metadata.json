@@ -1,0 +1,8 @@
+{
+  "name": "go-conventions",
+  "type": "rule",
+  "description": "Go coding conventions covering naming, error handling, structure, testing, and dependencies",
+  "tags": ["go", "conventions", "style"],
+  "author": "skill-registry",
+  "license": "MIT"
+}

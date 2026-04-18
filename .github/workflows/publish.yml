@@ -1,0 +1,82 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r ci/requirements.txt
+
+      - name: Validate all packages
+        run: python ci/validate.py
+
+      - name: Detect changed packages
+        id: changes
+        run: |
+          changed=$(git diff --name-only HEAD~1...HEAD | grep '^packages/' | cut -d/ -f2 | sort -u)
+          echo "packages<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$changed" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Tag versions
+        if: steps.changes.outputs.packages != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          while IFS= read -r pkg; do
+            [ -z "$pkg" ] && continue
+            [ ! -d "packages/$pkg" ] && continue
+
+            # Find latest tag for this package
+            latest=$(git tag --list "${pkg}@*" --sort=-v:refname | head -n1)
+
+            if [ -z "$latest" ]; then
+              new_version="0.0.1"
+            else
+              # Extract version and bump patch
+              version="${latest#*@}"
+              major=$(echo "$version" | cut -d. -f1)
+              minor=$(echo "$version" | cut -d. -f2)
+              patch=$(echo "$version" | cut -d. -f3)
+              new_version="${major}.${minor}.$((patch + 1))"
+            fi
+
+            tag="${pkg}@${new_version}"
+            echo "Tagging $tag"
+            git tag "$tag"
+          done <<< "${{ steps.changes.outputs.packages }}"
+
+          git push --tags
+
+      - name: Rebuild index
+        run: python ci/build_index.py
+
+      - name: Commit index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add marketplace.json
+          if git diff --cached --quiet; then
+            echo "No index changes."
+          else
+            git commit -m "chore: rebuild index"
+            git push
+          fi

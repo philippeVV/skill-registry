@@ -1,0 +1,105 @@
+{
+  "packages": [
+    {
+      "name": "code-review-checklist",
+      "type": "skill",
+      "version": "0.0.1",
+      "description": "Guide code reviews with a structured checklist covering correctness, security, performance, readability, and testing",
+      "tags": [
+        "code-review",
+        "quality",
+        "security"
+      ],
+      "author": "skill-registry",
+      "license": "MIT",
+      "path": "packages/code-review-checklist",
+      "files": [
+        "README.md",
+        "SKILL.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:13c5f2c0b5d23ddcd86d9aca560541a1aa763da916d5730e62aded0770eccfa5"
+    },
+    {
+      "name": "domain-glossary",
+      "type": "knowledge",
+      "version": "0.0.1",
+      "description": "Example domain glossary demonstrating the knowledge package type with skill registry terminology",
+      "tags": [
+        "example",
+        "glossary",
+        "registry"
+      ],
+      "author": "skill-registry",
+      "license": "MIT",
+      "path": "packages/domain-glossary",
+      "files": [
+        "KNOWLEDGE.md",
+        "README.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:a7be11a51ad8d337163ce542f66905af464f5fc5b409c5bbd631cc889615919d",
+      "notes": "This is an example package. Replace the content with your own domain glossary."
+    },
+    {
+      "name": "go-conventions",
+      "type": "rule",
+      "version": "0.0.1",
+      "description": "Go coding conventions covering naming, error handling, structure, testing, and dependencies",
+      "tags": [
+        "go",
+        "conventions",
+        "style"
+      ],
+      "author": "skill-registry",
+      "license": "MIT",
+      "path": "packages/go-conventions",
+      "files": [
+        "README.md",
+        "RULE.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:29ed37d68ff05bd46b8d9c71342686767fbdb82177e5a203e20d1d571511c38b"
+    },
+    {
+      "name": "knowledge-retriever",
+      "type": "skill",
+      "version": "0.0.1",
+      "description": "Retrieve relevant domain knowledge from the local knowledge base when the current task could benefit from additional context",
+      "tags": [
+        "registry-core",
+        "knowledge",
+        "retrieval"
+      ],
+      "author": "skill-registry",
+      "license": "MIT",
+      "path": "packages/knowledge-retriever",
+      "files": [
+        "README.md",
+        "SKILL.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:cb80dd1012554da98bb8a9df5c7f302064bf1a3c96b8249d16bfd0a86ad3d921"
+    },
+    {
+      "name": "suggest-packages",
+      "type": "skill",
+      "version": "0.0.1",
+      "description": "Analyze the current project and recommend relevant packages from the skill registry",
+      "tags": [
+        "registry-core",
+        "discovery",
+        "onboarding"
+      ],
+      "author": "skill-registry",
+      "license": "MIT",
+      "path": "packages/suggest-packages",
+      "files": [
+        "README.md",
+        "SKILL.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:b2c71227fdc11c060ca5919e1a12fdd8b1f88484f9166aa278b0bdfe9b62a231"
+    }
+  ]
+}
