@@ -1,0 +1,8 @@
+{
+  "name": "code-review-checklist",
+  "type": "skill",
+  "description": "Guide code reviews with a structured checklist covering correctness, security, performance, readability, and testing",
+  "tags": ["code-review", "quality", "security"],
+  "author": "skill-registry",
+  "license": "MIT"
+}

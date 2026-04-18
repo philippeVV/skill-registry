@@ -1,0 +1,8 @@
+{
+  "name": "suggest-packages",
+  "type": "skill",
+  "description": "Analyze the current project and recommend relevant packages from the skill registry",
+  "tags": ["registry-core", "discovery", "onboarding"],
+  "author": "skill-registry",
+  "license": "MIT"
+}

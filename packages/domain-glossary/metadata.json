@@ -1,0 +1,9 @@
+{
+  "name": "domain-glossary",
+  "type": "knowledge",
+  "description": "Example domain glossary demonstrating the knowledge package type with skill registry terminology",
+  "tags": ["example", "glossary", "registry"],
+  "author": "skill-registry",
+  "license": "MIT",
+  "notes": "This is an example package. Replace the content with your own domain glossary."
+}
