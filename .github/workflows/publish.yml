@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "packages/**"
+      - "skr/**"
 
 permissions:
   contents: write
@@ -27,15 +28,23 @@ jobs:
       - name: Validate all packages
         run: python ci/validate.py
 
-      - name: Detect changed packages
+      - name: Detect changes
         id: changes
         run: |
-          changed=$(git diff --name-only HEAD~1...HEAD | grep '^packages/' | cut -d/ -f2 | sort -u)
+          pkg_changed=$(git diff --name-only HEAD~1...HEAD | grep '^packages/' | cut -d/ -f2 | sort -u)
+          skr_changed=$(git diff --name-only HEAD~1...HEAD | grep '^skr/' | head -1)
+
           echo "packages<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$changed" >> "$GITHUB_OUTPUT"
+          echo "$pkg_changed" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
-      - name: Tag versions
+          if [ -n "$skr_changed" ]; then
+            echo "skr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skr=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag package versions
         if: steps.changes.outputs.packages != ''
         run: |
           git config user.name "github-actions[bot]"
@@ -45,13 +54,11 @@ jobs:
             [ -z "$pkg" ] && continue
             [ ! -d "packages/$pkg" ] && continue
 
-            # Find latest tag for this package
             latest=$(git tag --list "${pkg}@*" --sort=-v:refname | head -n1)
 
             if [ -z "$latest" ]; then
               new_version="0.0.1"
             else
-              # Extract version and bump patch
               version="${latest#*@}"
               major=$(echo "$version" | cut -d. -f1)
               minor=$(echo "$version" | cut -d. -f2)
@@ -67,9 +74,11 @@ jobs:
           git push --tags
 
       - name: Rebuild index
+        if: steps.changes.outputs.packages != ''
         run: python ci/build_index.py
 
       - name: Commit index
+        if: steps.changes.outputs.packages != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -80,3 +89,26 @@ jobs:
             git commit -m "chore: rebuild index"
             git push
           fi
+
+      - name: Tag skr version
+        if: steps.changes.outputs.skr == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          latest=$(git tag --list "skr/v*" --sort=-v:refname | head -n1)
+
+          if [ -z "$latest" ]; then
+            new_version="0.0.1"
+          else
+            version="${latest#skr/v}"
+            major=$(echo "$version" | cut -d. -f1)
+            minor=$(echo "$version" | cut -d. -f2)
+            patch=$(echo "$version" | cut -d. -f3)
+            new_version="${major}.${minor}.$((patch + 1))"
+          fi
+
+          tag="skr/v${new_version}"
+          echo "Tagging $tag"
+          git tag "$tag"
+          git push origin "$tag"
