@@ -41,9 +41,10 @@ func runList(cmd *cobra.Command, args []string) error {
 		// Check for drift
 		var currentHash string
 		var hashErr error
-		if entry.Type == "skill" {
+		switch entry.Type {
+		case "skill", "knowledge":
 			currentHash, hashErr = hash.Dir(entry.Location)
-		} else {
+		default:
 			currentHash, hashErr = hash.File(entry.Location)
 		}
 

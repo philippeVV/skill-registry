@@ -96,9 +96,10 @@ func installOne(cfg *config.Config, pkg *registry.Package, lf *lockfile.Lockfile
 
 	// Compute hash of installed artifact
 	var h string
-	if pkg.Type == "skill" {
+	switch pkg.Type {
+	case "skill", "knowledge":
 		h, err = hash.Dir(location)
-	} else {
+	default:
 		h, err = hash.File(location)
 	}
 	if err != nil {
