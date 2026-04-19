@@ -11,7 +11,7 @@ import (
 )
 
 // FetchIndex clones the registry repo (shallow) and reads marketplace.json.
-// Returns the raw JSON bytes and caches them locally.
+// Returns the parsed index and caches the raw JSON locally.
 func FetchIndex(registryURL string) (*Index, error) {
 	log.Debug().Str("registry", registryURL).Msg("fetching index")
 
@@ -22,16 +22,8 @@ func FetchIndex(registryURL string) (*Index, error) {
 	defer os.RemoveAll(tmpDir)
 
 	repoURL := normalizeRepoURL(registryURL)
-	cmd := exec.Command("git", "clone", "--depth", "1", "--filter=blob:none", "--sparse", repoURL, tmpDir)
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := shallowClone(repoURL, tmpDir); err != nil {
 		return nil, fmt.Errorf("cloning registry: %w", err)
-	}
-
-	// Sparse checkout just marketplace.json
-	sparseCmd := exec.Command("git", "-C", tmpDir, "sparse-checkout", "set", "marketplace.json")
-	if err := sparseCmd.Run(); err != nil {
-		return nil, fmt.Errorf("sparse checkout: %w", err)
 	}
 
 	indexPath := filepath.Join(tmpDir, "marketplace.json")
@@ -48,9 +40,8 @@ func FetchIndex(registryURL string) (*Index, error) {
 	return LoadIndex(indexPath)
 }
 
-// FetchPackage clones the registry and extracts a specific package directory.
-// Returns the path to the extracted package in a temp directory.
-// The caller is responsible for cleaning up the returned directory's parent.
+// FetchPackage clones the registry and returns the path to a specific package directory.
+// The caller is responsible for calling the returned cleanup function.
 func FetchPackage(registryURL, pkgPath string) (string, func(), error) {
 	log.Debug().Str("package", pkgPath).Msg("fetching package")
 
@@ -61,17 +52,9 @@ func FetchPackage(registryURL, pkgPath string) (string, func(), error) {
 	cleanup := func() { os.RemoveAll(tmpDir) }
 
 	repoURL := normalizeRepoURL(registryURL)
-	cmd := exec.Command("git", "clone", "--depth", "1", "--filter=blob:none", "--sparse", repoURL, tmpDir)
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := shallowClone(repoURL, tmpDir); err != nil {
 		cleanup()
 		return "", nil, fmt.Errorf("cloning registry: %w", err)
-	}
-
-	sparseCmd := exec.Command("git", "-C", tmpDir, "sparse-checkout", "set", pkgPath)
-	if err := sparseCmd.Run(); err != nil {
-		cleanup()
-		return "", nil, fmt.Errorf("sparse checkout: %w", err)
 	}
 
 	extracted := filepath.Join(tmpDir, pkgPath)
@@ -81,6 +64,13 @@ func FetchPackage(registryURL, pkgPath string) (string, func(), error) {
 	}
 
 	return extracted, cleanup, nil
+}
+
+// shallowClone performs a simple shallow clone of the repo.
+func shallowClone(repoURL, dest string) error {
+	cmd := exec.Command("git", "clone", "--depth", "1", repoURL, dest)
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // normalizeRepoURL converts a GitHub URL to a git-cloneable URL.
