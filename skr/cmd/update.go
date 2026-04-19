@@ -22,7 +22,10 @@ func init() {
 }
 
 func runUpdate(cmd *cobra.Command, args []string) error {
-	// Force refresh the cache
+	// Force refresh the repo and index
+	if _, err := registry.EnsureRepo(cfg.Registry, true); err != nil {
+		return fmt.Errorf("refreshing registry: %w", err)
+	}
 	idx, err := registry.FetchIndex(cfg.Registry)
 	if err != nil {
 		return fmt.Errorf("fetching index: %w", err)

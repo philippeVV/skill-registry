@@ -10,7 +10,7 @@ import (
 
 const CacheTTL = 1 * time.Hour
 
-// CacheIsFresh returns true if the cached index exists and is less than CacheTTL old.
+// CacheIsFresh returns true if the cached index JSON exists and is less than CacheTTL old.
 func CacheIsFresh() bool {
 	info, err := os.Stat(config.CachePath())
 	if err != nil {
