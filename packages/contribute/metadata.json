@@ -1,0 +1,8 @@
+{
+  "name": "contribute",
+  "type": "skill",
+  "description": "Contribute local skills, rules, or knowledge to the skill registry — publish new packages or upstream modifications to existing ones",
+  "tags": ["registry-core", "authoring", "contribution"],
+  "author": "skill-registry",
+  "license": "MIT"
+}

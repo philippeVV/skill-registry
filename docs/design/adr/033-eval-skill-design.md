@@ -1,7 +1,7 @@
 # ADR-033: Eval Skill Design
 
 **Date:** 2026-04-18
-**Status:** Accepted (implementation details TBD)
+**Status:** Deferred to v2 (see ADR-034)
 
 ## Context
 

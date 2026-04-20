@@ -21,6 +21,46 @@
       "artifact_hash": "sha256:13c5f2c0b5d23ddcd86d9aca560541a1aa763da916d5730e62aded0770eccfa5"
     },
     {
+      "name": "conflict-check",
+      "type": "skill",
+      "version": "0.0.1",
+      "description": "Scan all loaded Claude Code context for conflicts and redundant overlap between installed packages and user configuration",
+      "tags": [
+        "registry-core",
+        "maintenance",
+        "diagnostics"
+      ],
+      "author": "skill-registry",
+      "license": "MIT",
+      "path": "packages/conflict-check",
+      "files": [
+        "README.md",
+        "SKILL.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:2f1e4a2cc77f46209827cef9bfabedd120c61d2d4d10137a9eafefaa60999dc9"
+    },
+    {
+      "name": "contribute",
+      "type": "skill",
+      "version": "0.0.1",
+      "description": "Contribute local skills, rules, or knowledge to the skill registry \u2014 publish new packages or upstream modifications to existing ones",
+      "tags": [
+        "registry-core",
+        "authoring",
+        "contribution"
+      ],
+      "author": "skill-registry",
+      "license": "MIT",
+      "path": "packages/contribute",
+      "files": [
+        "README.md",
+        "SKILL.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:beecb03a872deef2bc095d6166e20a892da234f997a194b7ff547bceebe40ed9"
+    },
+    {
       "name": "domain-glossary",
       "type": "knowledge",
       "version": "0.0.1",

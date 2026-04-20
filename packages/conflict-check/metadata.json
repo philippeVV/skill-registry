@@ -1,0 +1,8 @@
+{
+  "name": "conflict-check",
+  "type": "skill",
+  "description": "Scan all loaded Claude Code context for conflicts and redundant overlap between installed packages and user configuration",
+  "tags": ["registry-core", "maintenance", "diagnostics"],
+  "author": "skill-registry",
+  "license": "MIT"
+}

@@ -7,13 +7,16 @@ self-referential. The bundle is itself published as packages in the registry,
 tagged `registry-core`, installable in one command.
 
 Exit criterion: A user can install the bundle with
-`skr install --tag registry-core` and run `/eval` against a real task.
+`skr install --tag registry-core` and successfully run `/conflict-check`
+and `/contribute`.
 
 ---
 
 ## Task List
 
-### 1. `suggest-packages` Skill
+### 1. `suggest-packages` Skill ✓
+
+**Status:** Complete (delivered pre-M3)
 
 **Trigger:** User invokes `/suggest-packages`
 
@@ -27,12 +30,6 @@ Exit criterion: A user can install the bundle with
 5. For each recommendation, optionally run `skr info <name>` to surface
    full detail before the user decides
 
-**Notes:**
-- `skr` handles caching — the skill doesn't need to manage it
-- Recommendations should include the install command so the user can
-  copy-paste: `skr install <name>`
-- This is the v1 agent self-discovery mechanism (bridge until MCP in M7)
-
 ---
 
 ### 2. `conflict-check` Skill
@@ -41,95 +38,78 @@ Exit criterion: A user can install the bundle with
 automatic invocation at install time.
 
 **Behavior:**
-1. Run at session start (before significant work) or on demand
-2. Read the full content of all currently loaded packages from their
-   install locations
-3. Analyse for two failure modes:
-   - **Conflict**: two packages give contradictory instructions
-   - **Overlap**: two packages cover the same ground (context budget waste)
-4. Report findings with specific package names and the conflicting content
-5. Suggest which package to uninstall or which to keep
+1. Inventory all loaded context sources:
+   - skr-managed packages (from `~/.config/skr/skr.lock`)
+   - User rules (`~/.claude/rules/*.md`, `.claude/rules/*.md`)
+   - User skills (`~/.claude/skills/*/SKILL.md`, `.claude/skills/*/SKILL.md`)
+   - Knowledge (`~/.claude/knowledge/*/KNOWLEDGE.md`)
+   - CLAUDE.md files (project root, `~/.claude/CLAUDE.md`)
+2. Cross-reference lockfile to distinguish skr-managed vs user-created
+3. Read full artifact content for pairwise comparison
+4. Analyse for two failure modes:
+   - **Conflict**: two sources give contradictory instructions
+   - **Overlap**: two sources cover the same ground (context budget waste)
+5. Report findings with specific quotes from each source
+6. Present both resolution options neutrally — user decides
 
 **Notes:**
+- Scans ALL loaded context, not just skr packages
 - Full artifact content analysis, not description-only
 - Non-blocking — presents findings, user decides what to do
 - Particularly useful to run after `skr install --tag <tag>` bulk installs
 
 ---
 
-### 3. `eval` Skill
+### 3. `contribute` Skill (merged publish-skill + contribute)
 
-**Trigger:** User invokes `/eval <package-name>` before performing a task
-they believe the package improves.
+**Trigger:** User invokes `/contribute [path-or-name]`
 
-**Behavior:**
-1. Read `eval/guidelines.md` from the package if present
-2. Ask the user to describe the task they are about to perform
-3. Spawn a **shadow sub-agent** to perform the same task without the
-   package in context:
-   - Preferred: spawn with restricted context excluding the package
-   - Fallback: explicitly instruct the sub-agent to ignore the package content
-   - For file operations: shadow sub-agent works in a git worktree
-4. Main session proceeds with the real task as normal (with package loaded)
-5. Spawn a **judge sub-agent** that receives both outputs and scores which
-   performed better, with reasoning
-6. Present results to the user: score, reasoning, which performed better
-7. Optionally publish result back to the registry as an evidence point
+**Two flows, detected automatically:**
 
-**Open questions to resolve during implementation:**
-- Can sub-agents be spawned with restricted context excluding specific skills?
-- Can file read access be denied for a sub-agent's scope?
-- How does the main session output get captured for the judge?
+**Flow A — New package:**
+1. Scan `~/.claude/skills/`, `~/.claude/rules/`, `.claude/skills/`,
+   `.claude/rules/`, cross-reference lockfile
+2. Present non-skr artifacts as contribution candidates
+3. User picks (or passed via argument, skip scan)
+4. Infer type from source location, name from filename/directory
+5. Draft description and suggest tags from artifact content
+6. Pull author from `git config user.name`, default license to MIT
+7. Generate `metadata.json` and `README.md`
+8. Show all files to the user for review before proceeding
 
-See ADR-033 for full design rationale.
+**Flow B — Modified package:**
+1. Confirm modified status via lockfile hash comparison
+2. Read installed artifact from disk
+3. Only replace the artifact file (SKILL.md/RULE.md/KNOWLEDGE.md) — keep
+   registry metadata.json and README.md
+4. Draft PR description from diff, ask user for additional context
 
----
-
-### 4. `publish-skill` Skill
-
-**Trigger:** User invokes `/publish-skill`
-
-**Behavior:**
-1. Ask the user to describe the pattern or workflow they want to package
-2. Determine the appropriate package type based on the description
-3. Draft the artifact in the correct format for the type
-4. Generate `metadata.json` with all required fields — prompt user for
-   any missing values (name, tags, author, license)
-5. Generate `README.md` with description and usage examples
-6. Show all files to the user for review before proceeding
-7. On user approval: create a branch, commit the files under
-   `packages/<name>/`, open a PR against the registry repo via `gh`
+**Both flows end with:**
+1. Clone registry repo to temp directory
+2. Create branch from main
+3. Commit package files under `packages/<name>/`
+4. Open PR via `gh` with description
+5. Clean up temp directory
 
 **Notes:**
-- Enforces package structure per `docs/package-types.md`
-- Validates `metadata.json` locally before committing (mirrors `ci/validate.py`
-  rules so contributors get early feedback)
-- PR description explains what the package does and why it's useful
-
----
-
-### 5. `contribute` Skill
-
-**Trigger:** User invokes `/contribute <package-name>`
-
-**Behavior:**
-1. Check `skr list` output — confirm the package shows `[modified]`
-2. Read the currently installed artifact from its install location
-3. Fetch the original artifact from the registry (via `skr info`)
-4. Understand what changed and why (prompt user if intent is unclear)
-5. Create a branch, update `packages/<name>/` with the local version,
-   open a PR via `gh` with a meaningful description of the improvement
-
-**Notes:**
-- Relies on `skr list` drift detection to identify modified packages
+- Merges the originally separate `publish-skill` and `contribute` skills
 - Uses `gh` CLI for PR creation — requires `gh` to be installed and
   authenticated
+- Always shows files for review before committing
 
 ---
 
-### 6. Publishing All Five as Packages
+### 4. `eval` Skill — Deferred to v2
 
-All five skills are published to the registry under `packages/` with
+See ADR-034. The eval skill's workflow has unresolved design questions
+around output capture and session orchestration. Design decisions captured
+in ADR-033 and ADR-034 for future implementation.
+
+---
+
+### 5. Publishing All Skills as Packages
+
+All skills are published to the registry under `packages/` with
 `registry-core` tag. They must pass `ci/validate.py` and serve as
 reference implementations for contributors.
 
@@ -145,9 +125,14 @@ Each includes:
 | Decision | Choice |
 |---|---|
 | `suggest-packages` index access | Shell out to `skr search` / `skr info` |
+| `conflict-check` scope | All loaded context, not just skr packages |
 | `conflict-check` trigger | User-invoked only — no automatic install-time check |
-| `eval` participant count | Main session + shadow sub-agent + judge sub-agent |
-| Shadow agent isolation | TBD — depends on Claude Code sub-agent capabilities |
-| `publish-skill` PR step | Skill opens PR via `gh` after user review |
-| `contribute` drift detection | Reads `skr list [modified]` output |
+| `conflict-check` discovery | Lockfile for skr packages + glob for user config |
+| `conflict-check` resolution | Present both options neutrally, user decides |
+| `publish-skill` + `contribute` | Merged into single `contribute` skill |
+| `contribute` type inference | From source location (rules/ → rule, etc.) |
+| `contribute` modified packages | Replace artifact file only, keep metadata/README |
+| `contribute` repo access | Clone to temp dir, clean up when done |
+| `contribute` PR | Via `gh` CLI, draft description with user input |
+| `eval` | Deferred to v2 (ADR-034) |
 | Bundle install | `skr install --tag registry-core` (tag install added in M1) |
