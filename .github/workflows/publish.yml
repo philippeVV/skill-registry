@@ -6,9 +6,12 @@ on:
     paths:
       - "packages/**"
       - "skr/**"
+      - "web/**"
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   publish:
@@ -112,3 +115,31 @@ jobs:
           echo "Tagging $tag"
           git tag "$tag"
           git push origin "$tag"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install web dependencies
+        run: cd web && npm ci
+
+      - name: Build site
+        run: cd web && npm run build
+        env:
+          PUBLIC_REGISTRY_URL: "https://raw.githubusercontent.com/philippeVV/skill-registry/main"
+          PUBLIC_STATS_URL: ""
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
