@@ -27,8 +27,7 @@ the `suggest-packages` skill analyze your project and recommend what to
 install.
 
 **Drift detection.** The lockfile tracks content hashes. If a package is
-modified locally, `skr list` flags it. `skr diff` shows what changed.
-`skr contribute` sends your improvements back upstream.
+modified locally, `skr list` flags it. `skr contribute` sends your improvements back upstream.
 
 **Trust signals.** Install and invocation counts tracked via OpenTelemetry.
 See what people actually use, not just what exists.
