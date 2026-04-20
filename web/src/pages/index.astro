@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import PackageBrowser from '../components/PackageBrowser';
 ---
 
 <Base title="Skill Registry">
@@ -11,5 +12,9 @@ import Base from '../layouts/Base.astro';
     <div class="inline-block bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 font-mono text-sm text-gray-300">
       go install github.com/philippeVV/skill-registry/skr@latest
     </div>
+  </section>
+
+  <section class="py-8">
+    <PackageBrowser client:load />
   </section>
 </Base>
