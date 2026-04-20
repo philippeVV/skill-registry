@@ -1,17 +1,15 @@
 ---
-
+import Base from '../layouts/Base.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base title="Skill Registry">
+  <section class="text-center py-12">
+    <h1 class="text-4xl font-bold mb-4">Skill Registry</h1>
+    <p class="text-lg text-gray-400 mb-6">
+      OSS marketplace for Claude Code skills, rules, and knowledge
+    </p>
+    <div class="inline-block bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 font-mono text-sm text-gray-300">
+      go install github.com/philippeVV/skill-registry/skr@latest
+    </div>
+  </section>
+</Base>
