@@ -7,6 +7,7 @@ import (
 
 	"github.com/philippeVV/skill-registry/skr/internal/lockfile"
 	"github.com/philippeVV/skill-registry/skr/internal/registry"
+	"github.com/philippeVV/skill-registry/skr/internal/telemetry"
 	"github.com/philippeVV/skill-registry/skr/internal/ui"
 )
 
@@ -45,6 +46,7 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	ctx := cmd.Context()
 	updated := 0
 	for _, name := range toUpdate {
 		entry, ok := lf.Get(name)
@@ -64,11 +66,14 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		fmt.Printf("  Updating %s: %s → %s\n", name, entry.Version, pkg.Version)
-		if err := installOne(cfg, pkg, lf); err != nil {
+		oldVersion := entry.Version
+		fmt.Printf("  Updating %s: %s → %s\n", name, oldVersion, pkg.Version)
+		if err := installOne(ctx, cfg, pkg, lf); err != nil {
 			fmt.Println(ui.Error.Render(fmt.Sprintf("  Failed to update %s: %v", name, err)))
 			continue
 		}
+
+		telemetry.EmitUpdate(ctx, name, oldVersion, pkg.Version)
 
 		// Preserve system flag
 		if entry.System {

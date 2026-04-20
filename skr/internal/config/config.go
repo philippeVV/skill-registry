@@ -16,8 +16,9 @@ const (
 
 // Config holds the skr configuration.
 type Config struct {
-	Registry       string `json:"registry"`
+	Registry        string `json:"registry"`
 	ClaudeConfigDir string `json:"claude_config_dir"`
+	OTELEndpoint    string `json:"otel_endpoint"`
 }
 
 // DefaultClaudeConfigDir returns the default Claude config directory.
@@ -48,6 +49,9 @@ func Load() (*Config, error) {
 	}
 	if v := os.Getenv("SKR_CLAUDE_CONFIG_DIR"); v != "" {
 		cfg.ClaudeConfigDir = v
+	}
+	if v := os.Getenv("SKR_OTEL_ENDPOINT"); v != "" {
+		cfg.OTELEndpoint = v
 	}
 
 	// Expand ~ in claude_config_dir

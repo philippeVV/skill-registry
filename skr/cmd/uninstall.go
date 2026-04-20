@@ -8,6 +8,7 @@ import (
 	"github.com/philippeVV/skill-registry/skr/internal/installer"
 	"github.com/philippeVV/skill-registry/skr/internal/lockfile"
 	"github.com/philippeVV/skill-registry/skr/internal/registry"
+	"github.com/philippeVV/skill-registry/skr/internal/telemetry"
 	"github.com/philippeVV/skill-registry/skr/internal/ui"
 )
 
@@ -56,6 +57,7 @@ func runUninstall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("saving lockfile: %w", err)
 	}
 
+	telemetry.EmitUninstall(cmd.Context(), name, entry.Version)
 	fmt.Println(ui.Success.Render(fmt.Sprintf("  Uninstalled %s", name)))
 	return nil
 }

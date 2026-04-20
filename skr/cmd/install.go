@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/philippeVV/skill-registry/skr/internal/installer"
 	"github.com/philippeVV/skill-registry/skr/internal/lockfile"
 	"github.com/philippeVV/skill-registry/skr/internal/registry"
+	"github.com/philippeVV/skill-registry/skr/internal/telemetry"
 	"github.com/philippeVV/skill-registry/skr/internal/ui"
 )
 
@@ -61,8 +63,9 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("specify a package name or --tag")
 	}
 
+	ctx := cmd.Context()
 	for _, pkg := range toInstall {
-		if err := installOne(cfg, &pkg, lf); err != nil {
+		if err := installOne(ctx, cfg, &pkg, lf); err != nil {
 			fmt.Println(ui.Error.Render(fmt.Sprintf("Failed to install %s: %v", pkg.Name, err)))
 			continue
 		}
@@ -70,7 +73,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 
 	// On first install, bootstrap system skills
 	if isFirstInstall {
-		if err := bootstrapSystemSkills(idx, lf); err != nil {
+		if err := bootstrapSystemSkills(ctx, idx, lf); err != nil {
 			log.Warn().Err(err).Msg("failed to bootstrap system skills")
 		}
 	}
@@ -78,7 +81,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 	return lf.Save()
 }
 
-func installOne(cfg *config.Config, pkg *registry.Package, lf *lockfile.Lockfile) error {
+func installOne(ctx context.Context, cfg *config.Config, pkg *registry.Package, lf *lockfile.Lockfile) error {
 	fmt.Printf("  Installing %s@%s (%s)...\n", pkg.Name, pkg.Version, pkg.Type)
 
 	// Fetch the package
@@ -115,17 +118,18 @@ func installOne(cfg *config.Config, pkg *registry.Package, lf *lockfile.Lockfile
 	})
 
 	fmt.Println(ui.Success.Render(fmt.Sprintf("  Installed %s → %s", pkg.Name, location)))
+	telemetry.EmitInstall(ctx, pkg.Name, pkg.Version, pkg.Type, cfg.Registry)
 	return nil
 }
 
-func bootstrapSystemSkills(idx *registry.Index, lf *lockfile.Lockfile) error {
+func bootstrapSystemSkills(ctx context.Context, idx *registry.Index, lf *lockfile.Lockfile) error {
 	systemSkills := idx.FilterByTag("registry-core")
 	for _, pkg := range systemSkills {
 		if lf.IsInstalled(pkg.Name) {
 			continue
 		}
 		fmt.Printf("\n  Bootstrapping system skill: %s\n", pkg.Name)
-		if err := installOne(cfg, &pkg, lf); err != nil {
+		if err := installOne(ctx, cfg, &pkg, lf); err != nil {
 			return err
 		}
 		// Mark as system

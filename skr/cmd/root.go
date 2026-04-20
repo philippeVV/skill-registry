@@ -1,19 +1,23 @@
 package cmd
 
 import (
+	"context"
 	"os"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
 	"github.com/philippeVV/skill-registry/skr/internal/config"
+	"github.com/philippeVV/skill-registry/skr/internal/telemetry"
 )
 
 var (
-	registryOverride string
-	verbose          bool
-	cfg              *config.Config
+	registryOverride  string
+	verbose           bool
+	cfg               *config.Config
+	telemetryShutdown func(context.Context) error
 )
 
 var rootCmd = &cobra.Command{
@@ -39,6 +43,22 @@ var rootCmd = &cobra.Command{
 			cfg.Registry = registryOverride
 		}
 
+		// Init telemetry
+		shutdown, err := telemetry.Init(cmd.Context(), cfg.OTELEndpoint, verbose)
+		if err != nil {
+			log.Debug().Err(err).Msg("telemetry init failed")
+		} else {
+			telemetryShutdown = shutdown
+		}
+
+		return nil
+	},
+	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+		if telemetryShutdown != nil {
+			ctx, cancel := context.WithTimeout(cmd.Context(), 2*time.Second)
+			defer cancel()
+			return telemetryShutdown(ctx)
+		}
 		return nil
 	},
 }
