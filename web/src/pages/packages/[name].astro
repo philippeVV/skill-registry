@@ -1,0 +1,19 @@
+---
+import fs from 'node:fs';
+import Base from '../../layouts/Base.astro';
+import PackageDetail from '../../components/PackageDetail';
+
+export function getStaticPaths() {
+  const raw = fs.readFileSync(new URL('../../../../marketplace.json', import.meta.url), 'utf-8');
+  const marketplace = JSON.parse(raw);
+  return marketplace.packages.map((pkg: { name: string }) => ({
+    params: { name: pkg.name },
+  }));
+}
+
+const { name } = Astro.params;
+---
+
+<Base title={`${name} - Skill Registry`}>
+  <PackageDetail client:load packageName={name} />
+</Base>
