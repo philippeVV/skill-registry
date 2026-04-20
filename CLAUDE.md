@@ -10,7 +10,7 @@ users install with `skr`.
 - `skr/` — Go CLI source (`github.com/philippeVV/skill-registry/skr`)
 - `ci/` — Python scripts for validation and index building
 - `docs/` — vision, roadmap, ADRs, specs
-- `web/` — Astro frontend (M4, placeholder)
+- `web/` — Astro frontend (static shell + Preact islands)
 - `marketplace.json` — generated index (do not hand-edit)
 
 ## Dev Setup

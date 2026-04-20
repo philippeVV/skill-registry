@@ -1,52 +1,82 @@
 # Skill Registry
 
-A functional OSS registry for Claude Code config artifacts. Publish, discover,
-and install skills, rules, and knowledge packages.
+**The package manager for Claude Code.**
 
-## Quickstart
+Skills, rules, and knowledge packages — discovered, installed, and kept
+current with a single CLI. No more copying prompt files from Slack or
+guessing which config snippets actually work.
 
-```bash
-# Install the CLI
-go install github.com/philippeVV/skill-registry/skr@latest
+## Why
 
-# Search for packages
-skr search code-review
+Claude Code is only as good as the context it runs with. Teams are already
+sharing skills and prompt configs — but through Slack threads, gists, and
+copy-paste. There's no way to find what exists, no way to know if it works,
+and no way to keep it up to date.
 
-# Install a package
-skr install suggest-packages
+Skill Registry fixes that. One registry, one CLI, one command to install
+what you need.
 
-# List installed packages
-skr list
-```
+## What You Get
 
-## How It Works
+**One-command install.** `skr install suggest-packages` puts the right
+files in the right place. Skills, rules, and knowledge each have their own
+install semantics — `skr` handles all of it.
 
-1. **Authors** submit packages via pull request to `packages/<name>/`
-2. **CI** validates the package (schema + semantic rules) on every PR
-3. **On merge**, CI tags a version and rebuilds the index (`marketplace.json`)
-4. **Users** install with `skr install <name>` — artifacts are placed in
-   the correct Claude Code location based on package type
+**Search and discovery.** Browse packages by tag, search by name, or let
+the `suggest-packages` skill analyze your project and recommend what to
+install.
+
+**Drift detection.** The lockfile tracks content hashes. If a package is
+modified locally, `skr list` flags it. `skr diff` shows what changed.
+`skr contribute` sends your improvements back upstream.
+
+**Trust signals.** Install and invocation counts tracked via OpenTelemetry.
+See what people actually use, not just what exists.
+
+**Web UI.** Browse the registry in a browser at
+[philippevv.github.io/skill-registry](https://philippevv.github.io/skill-registry/).
+Filter by tag, read READMEs, check stats — no CLI needed.
+
+**CI-powered quality gate.** Every package enters through a pull request.
+Schema validation, semantic checks, and human review before anything gets
+published.
+
+**Helper bundle.** First-party skills that use the registry itself:
+conflict checking, package suggestions, and contributing back upstream.
+Install them all with `skr install --tag registry-core`.
 
 ## Package Types
 
-| Type | What it is | Where it goes |
-|------|-----------|---------------|
-| **skill** | Slash commands and behaviors for Claude Code | `~/.claude/skills/<name>/` |
-| **rule** | Always-on instructions (path-scoped optional) | `~/.claude/rules/<name>.md` |
-| **knowledge** | Domain knowledge retrieved on demand | `~/.claude/knowledge/<name>/` |
+| Type | What it is | Example |
+|------|-----------|---------|
+| **skill** | Slash commands and behaviors | `/code-review-checklist` |
+| **rule** | Always-on instructions (path-scoped) | Go conventions |
+| **knowledge** | Domain context retrieved on demand | Domain glossary |
 
-## Contributing
+## Getting Started
 
-Each package needs:
-- `metadata.json` with name, type, description, tags, author, license
-- An artifact file matching the type (`SKILL.md`, `RULE.md`, or `KNOWLEDGE.md`)
-- A `README.md`
+See [docs/getting-started.md](docs/getting-started.md) for installation,
+usage, and contributing instructions.
 
-Validate locally before submitting:
+## Coming Soon
 
-```bash
-python ci/validate.py packages/<your-package>
-```
+**External package tracking** — Point the registry at upstream sources.
+A scheduled CI job watches for changes and opens sync PRs automatically.
+Renovate-style freshness for your Claude Code configs.
 
-See `docs/VISION.md` for the full project vision and `docs/ROADMAP.md` for
-the milestone plan.
+**A/B eval system** — Test whether a package actually improves Claude's
+output on your real tasks. Two sub-agents run in parallel (with and without
+the package), a judge scores the difference. Evidence that accumulates
+across users and tasks.
+
+**Private registry support** — Same format, same CLI, pointed at your
+org's private repo. Internal access controls, OTEL wired to your
+observability stack, LLM review gate, and prompt-injection scanning.
+
+**Stats backend** — Live install and invocation counts served from an
+OTEL-powered backend. Leaderboards, author rankings, and real trust
+signals on the web UI.
+
+## License
+
+MIT
