@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { fetchMarketplace, fetchStatsSummary } from '../lib/registry';
+import { TYPE_TEXT_CLASSES } from '../lib/constants';
 import type { Package, StatsSummary } from '../lib/types';
-
-const TYPE_COLORS: Record<string, string> = {
-  skill: 'text-blue-300',
-  rule: 'text-amber-300',
-  knowledge: 'text-green-300',
-};
 
 interface AuthorEntry {
   name: string;
@@ -125,7 +120,7 @@ export default function Leaderboard() {
                           {pkg.name}
                         </a>
                       </td>
-                      <td class={`py-3 pr-4 ${TYPE_COLORS[pkg.type] || 'text-gray-400'}`}>
+                      <td class={`py-3 pr-4 ${TYPE_TEXT_CLASSES[pkg.type] || 'text-gray-400'}`}>
                         {pkg.type}
                       </td>
                       <td class="py-3 pr-4 text-right text-gray-300">

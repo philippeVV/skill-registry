@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { fetchMarketplace } from '../lib/registry';
+import { TYPE_BADGE_CLASSES } from '../lib/constants';
 import type { Package } from '../lib/types';
-
-const TYPE_COLORS: Record<string, string> = {
-  skill: 'bg-blue-900/50 text-blue-300 border-blue-800',
-  rule: 'bg-amber-900/50 text-amber-300 border-amber-800',
-  knowledge: 'bg-green-900/50 text-green-300 border-green-800',
-};
 
 function PackageCard({ pkg }: { pkg: Package }) {
   return (
@@ -17,7 +12,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
       <div class="flex items-start justify-between gap-2 mb-2">
         <h3 class="font-semibold text-gray-100 truncate">{pkg.name}</h3>
         <span
-          class={`text-xs px-2 py-0.5 rounded border shrink-0 ${TYPE_COLORS[pkg.type] || ''}`}
+          class={`text-xs px-2 py-0.5 rounded border shrink-0 ${TYPE_BADGE_CLASSES[pkg.type] || ''}`}
         >
           {pkg.type}
         </span>

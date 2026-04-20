@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'preact/hooks';
 import { marked } from 'marked';
 import { fetchMarketplace, fetchReadme, fetchPackageStats } from '../lib/registry';
+import { TYPE_BADGE_CLASSES } from '../lib/constants';
 import type { Package, PackageStats } from '../lib/types';
-
-const TYPE_COLORS: Record<string, string> = {
-  skill: 'bg-blue-900/50 text-blue-300 border-blue-800',
-  rule: 'bg-amber-900/50 text-amber-300 border-amber-800',
-  knowledge: 'bg-green-900/50 text-green-300 border-green-800',
-};
 
 function Skeleton() {
   return (
@@ -82,7 +77,7 @@ export default function PackageDetail({ packageName }: { packageName: string }) 
       <div class="flex items-start gap-3">
         <h1 class="text-3xl font-bold">{pkg.name}</h1>
         <span
-          class={`text-sm px-2.5 py-0.5 rounded border mt-1 ${TYPE_COLORS[pkg.type] || ''}`}
+          class={`text-sm px-2.5 py-0.5 rounded border mt-1 ${TYPE_BADGE_CLASSES[pkg.type] || ''}`}
         >
           {pkg.type}
         </span>
