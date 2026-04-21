@@ -10,6 +10,9 @@ const ARTIFACT_TYPES = {
   knowledge: "KNOWLEDGE.md",
 };
 
+/** Files managed locally by the registry — never synced from upstream. */
+const LOCAL_ONLY = new Set(["metadata.json"]);
+
 // --- Helpers ----------------------------------------------------------------
 
 function parseGitHubUrl(url) {
@@ -168,14 +171,14 @@ async function syncPackage(pkg) {
       recursive: "true",
     });
     upstreamFiles = subtree.tree
-      .filter((e) => e.type === "blob" && e.path !== "metadata.json")
+      .filter((e) => e.type === "blob" && !LOCAL_ONLY.has(e.path))
       .map((e) => ({ path: e.path, sha: e.sha }));
   } else {
     // Single-file mode — upstream.path points to a file
     const pathParts = upstream.path.split("/");
     const fileName = pathParts.pop();
-    if (fileName === "metadata.json") {
-      core.info(`[${name}] upstream.path points to metadata.json, skipping.`);
+    if (LOCAL_ONLY.has(fileName)) {
+      core.info(`[${name}] upstream.path points to ${fileName}, skipping.`);
       return;
     }
     const parentSha = pathParts.length
@@ -194,7 +197,7 @@ async function syncPackage(pkg) {
   }
 
   // 3. Compare upstream SHAs against local files
-  const localFiles = walkDir(localDir, localDir).filter((f) => f !== "metadata.json");
+  const localFiles = walkDir(localDir, localDir).filter((f) => !LOCAL_ONLY.has(f));
   const upstreamPaths = new Set(upstreamFiles.map((f) => f.path));
   const localPaths = new Set(localFiles);
 
