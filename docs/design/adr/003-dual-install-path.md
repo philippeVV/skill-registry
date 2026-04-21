@@ -25,16 +25,17 @@ We support two install paths with distinct roles:
 
 **Registry CLI (`skr`) — primary interface**
 - `skr install <name>[@version]` is the recommended install command
-- The CLI reads the same `marketplace.json` index
+- The CLI clones the registry repo (shallow, depth=1) and reads the
+  `marketplace.json` index and package files from the local clone
 - Handles type-specific install semantics transparently:
-  - `skill` → copy to `~/.claude/skills/`
-  - `knowledge` / `fragment` → append to `~/.claude/CLAUDE.md` inside a
-    registry-managed fence block (enabling clean uninstall)
-  - `config` → merge into `~/.claude/settings.json`
-- Runs conflict and overlap detection before completing install
-- Enforces security scan policy (blocks packages that failed scanning)
-- Records install count back to the registry index
-- Supports version pinning and lockfile generation
+  - `skill` → copy directory to `~/.claude/skills/<name>/`
+  - `rule` → copy `RULE.md` to `~/.claude/rules/<name>.md`
+  - `knowledge` → copy `KNOWLEDGE.md` to `~/.claude/knowledge/<name>/`
+    and update `~/.claude/knowledge/index.json`
+- Emits OTEL install events for telemetry (when configured)
+- Supports version pinning and lockfile generation with hash-based
+  drift detection
+- On first install, auto-bootstraps `registry-core` tagged system skills
 
 Both paths consume the same index. There is no schema divergence.
 

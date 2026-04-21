@@ -72,22 +72,35 @@ while loading and when no backend is configured.
 
 ## Architecture
 
-**Astro islands — two interactive components, rest is static HTML:**
+**Astro with Preact islands — three interactive components, rest is static HTML:**
 
-1. **Search + filter island** (home page only)
-   - Loads `marketplace.json` in the browser on mount
+The original design called for vanilla JS islands. During implementation,
+Preact was chosen because the search/filter component needed reactive state
+management (search text, active tag filters, loading states, fetched data).
+Preact adds ~3KB gzipped and provides hooks-based state that would have
+required significantly more boilerplate in vanilla JS.
+
+1. **`PackageBrowser.tsx`** (home page — `client:load`)
+   - Fetches `marketplace.json` from GitHub raw content on mount
    - Filters package grid by search text (name, description, tags)
-     and active tag pills
-   - Vanilla JS — no search library needed at this scale
+     and clickable tag pills (multi-select)
+   - Responsive grid layout (1/2/3 columns)
+   - Skeleton loading states while fetching
 
-2. **Stats island** (package detail + leaderboard)
-   - Fetches from `stats_url` at page load
-   - Renders counts when available, `—` placeholder otherwise
-   - Configured at Astro build time via environment variable:
-     `PUBLIC_STATS_URL` (empty = no backend)
+2. **`PackageDetail.tsx`** (package detail page — `client:load`)
+   - Displays full package metadata and install command
+   - Fetches and renders README.md as HTML via `marked` library
+   - Fetches stats from `PUBLIC_STATS_URL` if configured
+   - Shows `—` placeholder when no stats backend
 
-Everything else — package cards, README rendering, navigation, leaderboard
-skeleton — is pure static HTML generated at build time from `marketplace.json`.
+3. **`Leaderboard.tsx`** (leaderboard page — `client:load`)
+   - Two tables: top packages (by invocations for skills, installs for
+     others) and top authors (aggregate score with package count)
+   - Fetches live stats from `PUBLIC_STATS_URL`
+   - Skeleton loading states
+
+All islands use Astro's `client:load` directive for immediate hydration.
+Navigation, layout, and page shells are static HTML generated at build time.
 
 ---
 
@@ -95,20 +108,30 @@ skeleton — is pure static HTML generated at build time from `marketplace.json`
 
 ```
 web/
-  astro.config.mjs
+  astro.config.mjs        # site: philippevv.github.io, base: /skill-registry/
+  tsconfig.json
+  package.json
   src/
     pages/
-      index.astro
+      index.astro          # home page with PackageBrowser island
       packages/
-        [name].astro     # generated from marketplace.json
-      leaderboard.astro
+        [name].astro       # generated from marketplace.json, PackageDetail island
+      leaderboard.astro    # Leaderboard island
     components/
-      PackageCard.astro
-      SearchFilter.tsx   # island
-      StatsBlock.tsx     # island
+      PackageBrowser.tsx   # Preact island — search, filter, package grid
+      PackageDetail.tsx    # Preact island — package metadata, README, stats
+      Leaderboard.tsx      # Preact island — top packages and authors tables
+    lib/
+      registry.ts          # fetch helpers for marketplace.json, README, stats
+      types.ts             # TypeScript interfaces (Package, PackageStats, etc.)
+      constants.ts         # type badge styling (Tailwind classes per type)
     layouts/
-      Base.astro
+      Base.astro           # HTML shell, nav header, footer
+    styles/
+      global.css           # Tailwind imports
   public/
+    favicon.svg
+    favicon.ico
 ```
 
 **Environment variables:**
@@ -139,11 +162,14 @@ so the site reflects the current state of packages.
 
 | Decision | Choice |
 |---|---|
-| Deployment (OSS) | GitHub Pages |
+| Deployment (OSS) | GitHub Pages (base: `/skill-registry/`) |
 | Deployment (v2) | S3 + CloudFront |
 | Pages | `/`, `/packages/<name>`, `/leaderboard` |
-| Search/filter | Client-side island, loads marketplace.json in browser |
+| Search/filter | Preact island (`PackageBrowser.tsx`), fetches marketplace.json client-side |
 | Stats when no backend | `—` placeholder always shown, never hidden |
-| JS architecture | Astro islands — search + stats only, rest static |
-| Styling | Tailwind CSS |
+| JS architecture | Astro + Preact islands — three interactive components, rest static |
+| Island framework | Preact (not vanilla JS as originally spec'd — reactive state needed) |
+| Markdown rendering | `marked` library in `PackageDetail.tsx` |
+| Styling | Tailwind CSS v4 via `@tailwindcss/vite` plugin |
 | Stats config | `PUBLIC_STATS_URL` env var at build time |
+| Data fetching | GitHub raw content URLs for marketplace.json and READMEs |

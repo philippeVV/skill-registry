@@ -26,10 +26,15 @@ packages/
 
 **Artifact filename convention by type:**
 - `skill` → `SKILL.md` (agentskills.io standard, native Claude Code compatible)
+- `rule` → `RULE.md`
 - `knowledge` → `KNOWLEDGE.md`
-- `fragment` → `FRAGMENT.md`
-- `config` → `CONFIG.json`
 - Future types: follow the `<TYPE>.<ext>` convention, declared in `metadata.json`
+
+Earlier drafts included `fragment` → `FRAGMENT.md` and `config` →
+`CONFIG.json`. Both were dropped during the type research spike (ADR-029)
+because Claude Code's context model didn't support clean install/uninstall
+for those artifact shapes. See `docs/package-types.md` for the full
+rationale.
 
 `metadata.json` is the authoritative source for type. CI uses it to validate
 that the correct artifact file is present and to build the index entry.
@@ -41,7 +46,7 @@ registry-specific and handled by `skr` only — Claude Code's native plugin
 system is expected to ignore or skip them gracefully in the marketplace index.
 
 **Flexibility:**
-Package types beyond the four listed above are not locked in. New types can
+Package types beyond the three listed above are not locked in. New types can
 be introduced by adding a convention to this ADR. The structure (artifact +
 metadata.json + README.md) remains stable regardless of type.
 

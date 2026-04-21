@@ -13,10 +13,22 @@ at this stage.
 
 ## Decision
 
-The frontend is a static Astro site with Tailwind CSS. At CI build time,
-Astro fetches `marketplace.json` and generates static package listing and
-detail pages. No server required — deployed to S3/CloudFront (v2)
-or GitHub Pages (OSS).
+The frontend is a static Astro site with Tailwind CSS and **Preact islands**
+for interactive components. At build time, Astro reads `marketplace.json`
+(fetched from GitHub raw content) and generates static package listing and
+detail pages. No server required — deployed to GitHub Pages (OSS) or
+S3/CloudFront (v2).
+
+**Island architecture:** Three Preact components handle all client-side
+interactivity:
+- `PackageBrowser.tsx` — home page search, tag filtering, and package grid
+  (fetches `marketplace.json` client-side for live filtering)
+- `PackageDetail.tsx` — package detail page with stats and rendered README
+  (uses `marked` for Markdown rendering)
+- `Leaderboard.tsx` — top packages and top authors tables with live stats
+
+Everything else is static HTML generated at build time. The Preact islands
+use Astro's `client:load` directive for immediate hydration.
 
 The visual aesthetic is inspired by claude-code-templates but the stack is
 not forked from it. Astro gives component-based structure without the runtime
@@ -25,12 +37,13 @@ JS overhead of a full React/Next.js app.
 The stack is not considered critical and may be replaced as needs evolve.
 Choosing Astro is a pragmatic default, not a strong commitment.
 
-**LiteLLM note:**
-The organization runs LiteLLM as an MCP gateway and AWS model gateway,
-primarily for agents. Almost all users access Claude via Claude Code accounts
-directly. Potential integration points with the registry (auth, audit,
-agent-facing API) are not designed for now. Revisit when LiteLLM usage
-patterns are better understood.
+**Why Preact over vanilla JS:** The M4 spec originally called for vanilla JS
+islands. During implementation, Preact was chosen because the search/filter
+island needed reactive state management (search text, active tag filters,
+loading states, fetched data). Preact adds ~3KB gzipped and provides
+hooks-based state management that would have required significantly more
+boilerplate in vanilla JS. The same reasoning applied to the stats and
+leaderboard islands.
 
 ## Consequences
 

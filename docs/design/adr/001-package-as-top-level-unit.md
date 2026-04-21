@@ -18,9 +18,19 @@ The top-level publishable unit is called a **package**. Every package has a
 `type` field that subdivides it:
 
 - `skill` — slash command or system prompt behavior for Claude Code
-- `knowledge` — domain knowledge snippet that injects context
-- `fragment` — reusable CLAUDE.md block
-- `config` — structured Claude configuration artifact
+  (installed as a directory under `~/.claude/skills/<name>/`)
+- `rule` — always-on coding convention or constraint
+  (installed as `~/.claude/rules/<name>.md`)
+- `knowledge` — domain knowledge snippet loaded on demand
+  (installed as a directory under `~/.claude/knowledge/<name>/`)
+
+These three types were finalized in a research spike (ADR-029) that
+mapped Claude Code's actual context-loading behavior to installable types.
+Earlier drafts included `fragment` (CLAUDE.md block) and `config`
+(settings.json artifact) — both were dropped because Claude Code's
+context model didn't support clean install/uninstall semantics for them.
+`hook` and `plugin` types were identified as future candidates but
+deferred due to complexity (see `docs/package-types.md`).
 
 The CLI, index, and web UI all use "package" as the primary noun. Type is a
 filter, not a separate concept.

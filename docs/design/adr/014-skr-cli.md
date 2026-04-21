@@ -33,10 +33,10 @@ skr --registry <url> <cmd>     # override registry source for any command
 ```
 
 `skr publish` and `skr contribute` are intentionally absent. Package
-submission and upstreaming local changes are handled by the `publish-skill`
-and `contribute` skills in the registry helper bundle — the coding agent
-is better suited to reasoning about diffs and writing PR descriptions than
-CLI code.
+submission and upstreaming local changes are handled by the `contribute`
+skill in the registry helper bundle (which merges the originally separate
+`publish-skill` and `contribute` concepts) — the coding agent is better
+suited to reasoning about diffs and writing PR descriptions than CLI code.
 
 ### Lockfile
 
@@ -46,24 +46,30 @@ and reproduce the install state exactly.
 
 ```json
 {
-  "registry": "https://github.com/org/skill-registry",
+  "registry": "https://github.com/philippeVV/skill-registry",
   "packages": {
-    "code-review-expert": {
-      "version": "1.2.0",
+    "code-review-checklist": {
+      "version": "0.0.1",
       "type": "skill",
-      "location": "~/.claude/skills/code-review-expert.md",
+      "location": "/home/user/.claude/skills/code-review-checklist",
       "hash": "sha256:abc123...",
+      "registry_hash": "sha256:abc123...",
       "installed_at": "2026-04-18T10:00:00Z",
-      "registry_hash": "sha256:abc123..."
+      "system": false
     }
   }
 }
 ```
 
-- `hash` — SHA256 of the currently installed artifact file
-- `registry_hash` — SHA256 of the artifact at install time from the registry
+- `location` — full absolute path to the installed artifact. For skills and
+  knowledge, this is a directory; for rules, a single file.
+- `hash` — SHA256 of the currently installed artifact (directory hash for
+  skills/knowledge, file hash for rules)
+- `registry_hash` — SHA256 from `artifact_hash` in `marketplace.json`
 - If `hash != registry_hash`, the file was manually modified locally
 - `skr list` shows a `[modified]` flag next to drifted packages
+- `system` — `true` for packages auto-bootstrapped from the `registry-core`
+  tag on first install. System packages require `--force` to uninstall.
 - the `contribute` helper skill reads the installed file directly and opens
   a PR — no `skr diff` command needed
 

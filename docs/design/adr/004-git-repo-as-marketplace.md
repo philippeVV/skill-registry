@@ -54,4 +54,4 @@ point at a private registry — only configuration.
 
 **Neutral:**
 - `skr` defaults to the OSS repo as its registry source; v2 teams
-  override via `~/.config/skr/config.toml` or the `SKR_REGISTRY` env var
+  override via `~/.config/skr/config.json` or the `SKR_REGISTRY` env var

@@ -45,19 +45,22 @@ The registry starts accumulating evidence, not just presence.
 The registry ships utility skills that use the registry itself. Self-referential,
 and the best demonstration of what the platform can do.
 
-- `suggest-packages` skill — fetches index, reads repo context, recommends
-  installs
+- `suggest-packages` skill — fetches index via `skr search`, reads repo
+  context, recommends installs
 - `conflict-check` skill — analyses full loaded context for conflicts and
-  overlap; wired into `skr install` as an advisory check
-- `eval` skill — A/B tests a package against real work using shadow sub-agent
-  and judge; git worktree isolation for file operations
-- `publish-skill` skill — drafts a new package from an observed pattern and
-  submits a PR
-- All four published under the `registry-core` tag
+  overlap; user-invoked only (not wired into install)
+- `contribute` skill — drafts new packages or upstreams local modifications
+  as PRs (merges the originally separate `publish-skill` and `contribute`)
+- `knowledge-retriever` skill — finds and loads relevant knowledge packages
+  on demand via `~/.claude/knowledge/index.json`
+- `code-review-checklist` skill — structured code review guidance
+- `eval` skill — deferred to v2 (ADR-034)
+- All published under the `registry-core` tag
 - `skr install --tag registry-core` installs the bundle in one command
+- Auto-bootstrapped as system skills on first `skr install` of any package
 
-**Exit criteria:** A user can install the bundle and run `/eval` against a
-real task.
+**Exit criteria:** A user can install the bundle and run `/conflict-check`
+and `/contribute`.
 
 ---
 
@@ -96,7 +99,7 @@ its upstream changes.
 The OSS registry becomes a private internal registry with organizational
 controls.
 
-- Private repo configuration — `SKR_REGISTRY` and `config.toml` for
+- Private repo configuration — `SKR_REGISTRY` and `config.json` for
   internal endpoint
 - OTEL backend wired to existing org observability stack
 - LLM review gate in CI publish pipeline (Layer 2, ADR-005)

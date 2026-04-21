@@ -23,9 +23,18 @@ reviewed by someone inside the org before it got there.
 Every publishable unit is a **package**, subdivided by type:
 
 - **skill** — slash commands and system prompt behaviors for Claude Code
-- **knowledge** — domain knowledge snippets that inject context
-- **fragment** — reusable CLAUDE.md blocks
-- **config** — structured Claude configuration artifacts
+  (directory installed to `~/.claude/skills/<name>/`)
+- **rule** — always-on coding conventions and constraints
+  (single file installed to `~/.claude/rules/<name>.md`)
+- **knowledge** — domain knowledge snippets loaded on demand
+  (directory installed to `~/.claude/knowledge/<name>/`)
+
+These types were finalized via a research spike that mapped Claude Code's
+actual context-loading behavior to installable types. Earlier drafts
+included `fragment` (CLAUDE.md blocks) and `config` (settings.json
+artifacts) — both were dropped because Claude Code's context model didn't
+support clean install/uninstall for them. `hook` and `plugin` are
+identified as future candidates (see `docs/package-types.md`).
 
 MCP servers are out of scope. They involve actions, permissions, and auditing
 that belong in a dedicated MCP gateway.
@@ -81,10 +90,10 @@ enabling true runtime discovery is planned for v2.
 `skr` is the primary install interface, written in Go. It handles
 type-specific install semantics transparently:
 
-- `skill` → `~/.claude/skills/`
-- `knowledge` / `fragment` → appended to `~/.claude/CLAUDE.md` inside
-  a managed fence block (enabling clean uninstall)
-- `config` → merged into `~/.claude/settings.json`
+- `skill` → `~/.claude/skills/<name>/` (directory with SKILL.md + optional subdirs)
+- `rule` → `~/.claude/rules/<name>.md` (single file, always loaded at startup)
+- `knowledge` → `~/.claude/knowledge/<name>/` (directory with KNOWLEDGE.md,
+  loaded on demand via `knowledge-retriever` skill)
 
 The lockfile at `~/.config/skr/skr.lock` tracks every installed package
 with its version, install location, and a content hash. If a package is
@@ -109,8 +118,8 @@ The registry accumulates evidence over time, not just presence.
 
 - **Invocation count** — for skill-type packages: how often the skill is
   actually used after install. The primary signal. Tracked via OpenTelemetry.
-- **Install count** — for always-on types (knowledge, fragment, config):
-  the primary signal. Also tracked via OTEL.
+- **Install count** — for always-on types (rule, knowledge): the primary
+  signal. Also tracked via OTEL.
 - **Leaderboard** — authors ranked by aggregate invocation and install
   counts. Decorative and motivational, not a critical signal.
 - **Evals** — see below.
@@ -118,24 +127,20 @@ The registry accumulates evidence over time, not just presence.
 Stats are live, served from the OTEL backend, and merged client-side by
 `skr` and the web UI. They are never baked into the static index.
 
-## Evals
+## Evals (Deferred to v2)
 
-Evals are user-initiated and run against real work, not synthetic benchmarks.
+The eval system is designed but deferred to v2 (see ADR-033, ADR-034).
 
-The user installs the `eval` helper skill and invokes it before a task they
-expect a package to improve. The eval skill orchestrates two parallel
-sub-agents — one with the package loaded, one without — and a judge
-sub-agent that compares outputs and scores which performed better. For tasks
-involving file operations, the shadow sub-agent runs in a git worktree to
-avoid interfering with real work.
+The design: a user installs the `eval` helper skill and invokes it before
+a task they expect a package to improve. The eval skill orchestrates two
+parallel sub-agents — one with the package loaded, one without — and a
+judge sub-agent that compares outputs and scores which performed better.
+For tasks involving file operations, the shadow sub-agent runs in a git
+worktree to avoid interfering with real work.
 
-Each package may include `eval/guidelines.md` to direct the judge toward
-what a meaningful improvement looks like for that specific package.
-
-Results are surfaced to the user at the end of the task and can optionally
-be published back to the registry as an evidence point. Over time, a package
-accumulates eval results from multiple users across diverse real tasks — far
-more meaningful than any synthetic benchmark.
+Deferred because of unresolved design questions around output capture,
+session orchestration, and whether users find the signal valuable enough
+to justify the API cost of running parallel agents.
 
 ## Conflict and Overlap Detection
 
@@ -155,14 +160,18 @@ proceed.
 ## Registry Helper Bundle
 
 The registry ships a first-party bundle of utility skills tagged
-`registry-core`, installed once with `skr install --tag registry-core`:
+`registry-core`, installed once with `skr install --tag registry-core`
+(or auto-bootstrapped on first `skr install` of any package):
 
-- **`eval`** — A/B test a package against real work
-- **`conflict-check`** — audit loaded context for conflicts and overlap
 - **`suggest-packages`** — browse the index and recommend installs for the
   current repo
-- **`publish-skill`** — draft a new package from an observed pattern and
-  submit it as a PR
+- **`conflict-check`** — audit loaded context for conflicts and overlap
+- **`contribute`** — draft new packages or upstream local modifications as
+  PRs (merges the originally separate `publish-skill` and `contribute`
+  concepts)
+- **`knowledge-retriever`** — find and load relevant knowledge packages
+  on demand
+- **`code-review-checklist`** — structured code review guidance
 
 These skills are themselves packages in the registry — they eat their own
 dog food and serve as reference implementations.

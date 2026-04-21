@@ -29,10 +29,17 @@ the CLI is agnostic to what backend receives the events.
   metric for non-skill packages.
 
 **Collector configuration:**
-- Set via `OTEL_EXPORTER_OTLP_ENDPOINT` env var or `~/.config/skr/config.toml`
+- Set via `SKR_OTEL_ENDPOINT` env var or `otel_endpoint` in
+  `~/.config/skr/config.json`
 - If no collector is configured, `skr` runs silently with no telemetry
+  (no exporter is created). When `--verbose` is passed and no endpoint
+  is set, a console exporter writes to stderr for development verification.
 - Telemetry is opt-out, not opt-in, for v2 deployments (operator
   configures the endpoint centrally via managed settings)
+
+**Note:** The original design used the standard `OTEL_EXPORTER_OTLP_ENDPOINT`
+env var. The implementation uses `SKR_OTEL_ENDPOINT` instead to avoid
+conflicting with other OTEL-instrumented tools on the same machine.
 
 **OSS / personal use:**
 The OSS version is a personal project and POC — not a public deployment.
@@ -60,5 +67,5 @@ for aggregated counts.
 - Non-skill types have no invocation signal, only install count
 
 **Neutral:**
-- OTEL endpoint configuration follows the standard `OTEL_*` env var convention
-  so it composes naturally with existing instrumented services
+- OTEL endpoint uses `SKR_OTEL_ENDPOINT` (not the standard `OTEL_*` convention)
+  to avoid conflicts with other instrumented tools; v2 deployments may revisit

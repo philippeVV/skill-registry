@@ -169,39 +169,62 @@ approval before landing.
 
 **Install:** `go install github.com/org/skill-registry/skr@latest`
 
-**Config file:** `~/.config/skr/config.toml`
-```toml
-registry = "https://github.com/org/skill-registry"  # default
-claude_config_dir = "~/.claude"                       # default
-otel_endpoint = ""                                    # empty = disabled
+**Config file:** `~/.config/skr/config.json`
+```json
+{
+  "registry": "https://github.com/philippeVV/skill-registry",
+  "claude_config_dir": "~/.claude",
+  "otel_endpoint": ""
+}
 ```
-Env var overrides: `SKR_REGISTRY`, `OTEL_EXPORTER_OTLP_ENDPOINT`
+Env var overrides: `SKR_REGISTRY`, `SKR_CLAUDE_CONFIG_DIR`, `SKR_OTEL_ENDPOINT`
 
-**Index cache:** `~/.config/skr/cache/marketplace.json`
-- TTL: 1 hour
-- All read commands use cache; fetch+refresh if stale or missing
-- Offline: use cache regardless of TTL if network unavailable
-- `skr update` forces refresh
+JSON was chosen over the originally planned TOML because Go's standard
+library handles JSON natively with no external dependency.
+
+**Index cache:** Two-layer cache:
+- `~/.config/skr/cache/repo/` — shallow git clone of the entire registry
+  (provides access to both index and package files locally)
+- `~/.config/skr/cache/marketplace.json` — extracted index JSON for fast reads
+
+TTL: 1 hour (tracked via `.skr-fetched` marker file in the repo clone).
+All read commands use cache; fetch+refresh if stale or missing. Offline:
+falls back to stale cache if network unavailable. `skr update` forces
+a repo refresh.
+
+The whole-repo clone avoids per-package HTTP fetches — after `skr search`,
+`skr install` is fully local if the cache is fresh.
 
 **Lockfile:** `~/.config/skr/skr.lock`
 ```json
 {
-  "registry": "https://github.com/org/skill-registry",
+  "registry": "https://github.com/philippeVV/skill-registry",
   "packages": {
     "suggest-packages": {
-      "version": "1.0.0",
+      "version": "0.0.1",
       "type": "skill",
-      "location": "~/.claude/skills/suggest-packages.md",
+      "location": "/home/user/.claude/skills/suggest-packages",
       "hash": "sha256:abc123...",
       "registry_hash": "sha256:abc123...",
-      "installed_at": "2026-04-18T10:00:00Z"
+      "installed_at": "2026-04-18T10:00:00Z",
+      "system": true
     }
   }
 }
 ```
-- `hash` — SHA256 of the currently installed artifact
-- `registry_hash` — SHA256 at install time from the registry
+- `location` — absolute path. For skills and knowledge, a directory; for
+  rules, a single file.
+- `hash` — SHA256 of installed artifact (directory hash for skills/knowledge,
+  file hash for rules)
+- `registry_hash` — `artifact_hash` from `marketplace.json` at install time
 - Drift: `hash != registry_hash` → `skr list` shows `[modified]`
+- `system` — `true` for packages auto-bootstrapped from `registry-core` tag
+  on first install. Requires `--force` to uninstall.
+
+**System skills bootstrap:** On the very first `skr install` (when the
+lockfile has no packages), `skr` auto-installs all packages tagged
+`registry-core` and marks them as system packages. This gives new users
+the helper bundle immediately without requiring a separate install step.
 
 **Install placement** (resolved after type research spike):
 - Defaults per type defined in `docs/package-types.md`

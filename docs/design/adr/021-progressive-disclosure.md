@@ -6,11 +6,10 @@
 ## Context
 
 Packages loaded at session start consume context tokens. A user with many
-installed packages — especially always-on types like `knowledge` and
-`fragment` — can exhaust useful context budget before any real work begins.
-The agentskills.io standard addresses this with a three-tier loading model.
-We need to decide whether to enforce this at the registry level or leave it
-to package authors.
+installed packages — especially always-on types like `rule` — can exhaust
+useful context budget before any real work begins. The agentskills.io
+standard addresses this with a three-tier loading model. We need to decide
+whether to enforce this at the registry level or leave it to package authors.
 
 ## Decision
 
@@ -25,13 +24,15 @@ requirement. It is per-package-type guidance, not a schema enforcement.
 - Tier 2 (loaded on activation): SKILL.md body — full instructions
 - Tier 3 (loaded on demand): `references/` files — examples, extended docs
 
-`knowledge` / `fragment` — always-on by nature, so authors are responsible
-for keeping content lean. The registry contributor guide recommends:
-- Lead with the most load-bearing context
-- Move supplementary detail into linked `references/` files
-- Aim for under 500 tokens in the primary artifact
+`rule` — always loaded at session start, so authors are responsible for
+keeping content lean. The registry contributor guide recommends:
+- Keep under 200 lines
+- Lead with the most load-bearing instructions
+- Use optional YAML frontmatter `paths` field for path scoping
 
-`config` — typically small JSON, not a concern.
+`knowledge` — loaded on demand via the `knowledge-retriever` skill, so
+context cost is only paid when relevant. Authors should still keep the
+primary `KNOWLEDGE.md` focused and lead with load-bearing content.
 
 The registry does not enforce token limits or tier structure at publish time.
 This may be revisited if context bloat becomes an observed problem.
