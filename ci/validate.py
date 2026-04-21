@@ -83,8 +83,8 @@ def validate_semantic(pkg_dir, metadata):
                 f"  semantic: upstream.url '{url}' is not a valid HTTP(S) URL"
             )
 
-    # README.md must exist
-    if not (pkg_dir / "README.md").exists():
+    # README.md must exist (optional for upstream-tracked packages)
+    if not upstream and not (pkg_dir / "README.md").exists():
         errors.append("  semantic: README.md not found")
 
     return errors

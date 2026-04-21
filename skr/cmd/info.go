@@ -71,11 +71,19 @@ func runInfo(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println()
 
-	// README
+	// README (fall back to artifact file if no README.md)
 	srcDir, cleanup, err := registry.FetchPackage(cfg.Registry, pkg.Path)
 	if err == nil {
 		defer cleanup()
 		readmeData, readErr := os.ReadFile(filepath.Join(srcDir, "README.md"))
+		if readErr != nil {
+			artifactFile := map[string]string{
+				"skill": "SKILL.md", "rule": "RULE.md", "knowledge": "KNOWLEDGE.md",
+			}[pkg.Type]
+			if artifactFile != "" {
+				readmeData, readErr = os.ReadFile(filepath.Join(srcDir, artifactFile))
+			}
+		}
 		if readErr == nil {
 			fmt.Println(ui.Bold.Render("  README"))
 			fmt.Println()

@@ -45,8 +45,8 @@ export default function PackageDetail({ packageName }: { packageName: string }) 
         const found = data.packages.find((p) => p.name === packageName);
         if (!found) throw new Error(`Package "${packageName}" not found`);
         setPkg(found);
-      }),
-      fetchReadme(packageName).then(setReadme),
+        return found;
+      }).then((found) => fetchReadme(packageName, found.type).then(setReadme)),
       fetchPackageStats(packageName).then(setStats),
     ])
       .catch((e) => setError(e.message))

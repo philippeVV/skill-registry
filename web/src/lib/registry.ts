@@ -18,11 +18,22 @@ export async function fetchMarketplace(): Promise<Marketplace> {
   return res.json();
 }
 
-export async function fetchReadme(name: string): Promise<string | null> {
+const ARTIFACT_FILES: Record<string, string> = {
+  skill: 'SKILL.md',
+  rule: 'RULE.md',
+  knowledge: 'KNOWLEDGE.md',
+};
+
+export async function fetchReadme(name: string, type?: string): Promise<string | null> {
   try {
-    const res = await fetch(`${getRegistryUrl()}/packages/${name}/README.md`);
-    if (!res.ok) return null;
-    return res.text();
+    const base = `${getRegistryUrl()}/packages/${name}`;
+    const res = await fetch(`${base}/README.md`);
+    if (res.ok) return res.text();
+    if (type && ARTIFACT_FILES[type]) {
+      const fallback = await fetch(`${base}/${ARTIFACT_FILES[type]}`);
+      if (fallback.ok) return fallback.text();
+    }
+    return null;
   } catch {
     return null;
   }
