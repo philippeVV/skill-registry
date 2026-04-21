@@ -59,18 +59,12 @@ usage, and contributing instructions.
 
 ## Coming Soon
 
-**External package tracking** — Point the registry at upstream sources.
-A scheduled CI job watches for changes and opens sync PRs automatically.
-Renovate-style freshness for your Claude Code configs.
-
 **A/B eval system** — Test whether a package actually improves Claude's
 output on your real tasks. Two sub-agents run in parallel (with and without
 the package), a judge scores the difference. Evidence that accumulates
 across users and tasks.
 
-**Private registry support** — Same format, same CLI, pointed at your
-org's private repo. Internal access controls, OTEL wired to your
-observability stack, LLM review gate, and prompt-injection scanning.
+**Security** — LLM review gate, and prompt-injection scanning.
 
 **Stats backend** — Live install and invocation counts served from an
 OTEL-powered backend. Leaderboards, author rankings, and real trust
