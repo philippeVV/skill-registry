@@ -102,6 +102,31 @@
       "artifact_hash": "sha256:29ed37d68ff05bd46b8d9c71342686767fbdb82177e5a203e20d1d571511c38b"
     },
     {
+      "name": "grill-me",
+      "type": "skill",
+      "version": "0.0.1",
+      "description": "Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree",
+      "tags": [
+        "planning",
+        "design-review",
+        "interview"
+      ],
+      "author": "mattpocock",
+      "license": "MIT",
+      "path": "packages/grill-me",
+      "files": [
+        "README.md",
+        "SKILL.md",
+        "metadata.json"
+      ],
+      "artifact_hash": "sha256:74147eb6010a65957efef2b9e0f0b3ff935c1def7fc117697151b1d0f3610556",
+      "upstream": {
+        "url": "https://github.com/mattpocock/skills",
+        "path": "grill-me",
+        "ref": "main"
+      }
+    },
+    {
       "name": "knowledge-retriever",
       "type": "skill",
       "version": "0.0.1",

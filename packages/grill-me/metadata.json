@@ -1,0 +1,13 @@
+{
+  "name": "grill-me",
+  "type": "skill",
+  "description": "Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree",
+  "tags": ["planning", "design-review", "interview"],
+  "author": "mattpocock",
+  "license": "MIT",
+  "upstream": {
+    "url": "https://github.com/mattpocock/skills",
+    "path": "grill-me",
+    "ref": "main"
+  }
+}
